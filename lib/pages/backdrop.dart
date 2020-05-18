@@ -13,10 +13,6 @@ import 'package:better_som_today/constants.dart';
 import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/studies/som/app.dart';
 
-const double _settingsButtonWidth = 64;
-const double _settingsButtonHeightDesktop = 56;
-const double _settingsButtonHeightMobile = 40;
-
 class Backdrop extends StatefulWidget {
   const Backdrop({
     this.settingsPage,
@@ -35,7 +31,6 @@ class _BackdropState extends State<Backdrop>
   AnimationController _settingsPanelController;
   FocusNode _settingsPageFocusNode;
   ValueNotifier<bool> _isSettingsOpenNotifier;
-  Widget _settingsPage;
   Widget _homePage;
 
   FlutterActorArtboard _artboard;
@@ -50,8 +45,7 @@ class _BackdropState extends State<Backdrop>
     );
     _settingsPageFocusNode = FocusNode();
     _isSettingsOpenNotifier = ValueNotifier(false);
-    _settingsPage = widget.settingsPage;
-    _homePage = RallyApp();
+    _homePage = SomApp();
   }
 
   @override

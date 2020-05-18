@@ -33,8 +33,8 @@ class RouteConfiguration {
   static List<Path> paths = [
     
     Path(
-      r'^' + RallyApp.homeRoute,
-      (context, match) => const RallyApp(),
+      r'^' + SomApp.homeRoute,
+      (context, match) => const SomApp(),
     ),
     Path(
       r'^/',

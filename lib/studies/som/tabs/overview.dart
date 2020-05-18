@@ -7,12 +7,10 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/layout/text_scale.dart';
 import 'package:better_som_today/studies/som/colors.dart';
 import 'package:better_som_today/studies/som/data.dart';
 import 'package:better_som_today/studies/som/school.dart';
-import 'package:better_som_today/studies/som/formatters.dart';
 
 /// A page that shows a status overview.
 class OverviewView extends StatefulWidget {
@@ -48,11 +46,9 @@ class _OverviewGrid extends StatelessWidget {
     final quickGradeDataList = DummyDataService.getQuickGradeItem(context);
 
     return LayoutBuilder(builder: (context, constraints) {
-      final textScaleFactor = SomOptions.of(context).textScaleFactor(context);
 
       // Only display multiple columns when the constraints allow it and we
       // have a regular text scale factor.
-      final minWidthForTwoColumns = 600;
       final hasMultipleColumns = false;
       final boxWidth = hasMultipleColumns
           ? constraints.maxWidth / 2 - spacing / 2

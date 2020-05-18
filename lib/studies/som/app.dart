@@ -11,12 +11,10 @@ import 'package:better_som_today/studies/som/colors.dart';
 import 'package:better_som_today/studies/som/home.dart';
 import 'package:better_som_today/studies/som/login.dart';
 
-/// The RallyApp is a MaterialApp with a theme and 2 routes.
-///
 /// The home route is the main page with tabs for sub pages.
 /// The login route is the initial route.
-class RallyApp extends StatelessWidget {
-  const RallyApp();
+class SomApp extends StatelessWidget {
+  const SomApp();
 
   static const String loginRoute = '/Som/login';
   static const String homeRoute = '/Som';

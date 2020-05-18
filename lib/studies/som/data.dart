@@ -11,6 +11,7 @@ import 'package:dio_http_cache/dio_http_cache.dart';
 
 dynamic authData;
 dynamic userItem;
+
 class CacheInterceptor extends Interceptor {
   CacheInterceptor();
 
@@ -40,7 +41,7 @@ class CacheInterceptor extends Interceptor {
   }
 }
 
-Future<dynamic> tryAuthenticate(String username, String password) async {
+Future<Map<String, String>> tryAuthenticate(String username, String password) async {
   Dio dio = new Dio();
   dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
   try {
@@ -55,7 +56,6 @@ Future<dynamic> tryAuthenticate(String username, String password) async {
   String basicAuth = 'Basic ' +
       base64Encode(utf8.encode(
           'D50E0C06-32D1-4B41-A137-A9A850C892C2:vDdWdKwPNaPCyhCDhaCnNeydyLxSGNJX'));
-  print(basicAuth);
 
   Map<String, String> headers = {
     'content-type': 'application/x-www-form-urlencoded',
@@ -69,26 +69,37 @@ Future<dynamic> tryAuthenticate(String username, String password) async {
     'grant_type': 'password'
   };
   dio.options.headers.addAll(headers);
-  final response = await dio.post('https://somtoday.nl/oauth2/token',
-      data: body, options: buildCacheOptions(Duration(seconds: 3500)));
-  if (response.statusCode == 200) {
-    // If the call to the server was successful, parse the JSON
-    print(response.data);
+  var returnMap = new Map<String, String>();
+  try {
+    final response = await dio.post('https://somtoday.nl/oauth2/token',
+        data: body, options: buildCacheOptions(Duration(seconds: 3500)));
+    if (response.statusCode == 200) {
+      // If the call to the server was successful, parse the JSON
+      print(response.data);
 
-    var data = response.data;
-    authData = data;
-    var authToken = authData["access_token"];
-    dio.options.headers["Authorization"] = "Bearer ${authToken}";
-    dio.options.headers["accept"] = "application/json";
-    final forcedResponse = await dio.get(
-        authData["somtoday_api_url"] + '/rest/v1/account/me',
-        options: buildCacheOptions(Duration(days: 7)));
-    print(forcedResponse);
-    userItem = forcedResponse.data;
-    return userItem;
-  } else {
-    // If that call was not successful, throw an error.
-    throw Exception('Failed to load post');
+      var data = response.data;
+      authData = data;
+      var authToken = authData["access_token"];
+      dio.options.headers["Authorization"] = "Bearer " + authToken;
+      dio.options.headers["accept"] = "application/json";
+      final forcedResponse = await dio.get(
+          authData["somtoday_api_url"] + '/rest/v1/account/me',
+          options: buildCacheOptions(Duration(days: 7)));
+      returnMap["auth"] = forcedResponse.data;
+      userItem = forcedResponse.data;
+      return returnMap;
+    } else {
+      // If that call was not successful, throw an error.
+      returnMap["error"] = response.statusCode.toString();
+      throw Exception('Failed to load post');
+    }
+  } on DioError catch (e) {
+    if (e.response.statusCode == 400) {
+      returnMap["error"] = "400";
+    } else {
+      returnMap["error"] = e.message;
+    }
+    return returnMap;
   }
 }
 
@@ -129,6 +140,7 @@ class SchoolListItem {
 
   final String naam;
 }
+
 /// A data model for a grade
 ///
 class CijferData {

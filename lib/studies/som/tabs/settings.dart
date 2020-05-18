@@ -52,7 +52,7 @@ class _SettingsItem extends StatelessWidget {
         child: Text(title),
       ),
       onPressed: () {
-        Navigator.of(context).pushNamed(RallyApp.loginRoute);
+        Navigator.of(context).pushNamed(SomApp.loginRoute);
       },
     );
   }
