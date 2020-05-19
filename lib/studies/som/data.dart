@@ -301,7 +301,7 @@ class SomDataService {
           options: buildCacheOptions(Duration(seconds: 120)));
       if (response.statusCode == 200 || response.statusCode == 206) {
         var data = response.data["items"];
-        var _f = List.from(data).where((element) => element["type"] == "Toetskolom" && double.parse(element["resultaat"] ?? "1.0") > 1);
+        var _f = List.from(data).where((element) => element["type"] == "Toetskolom");
         _f.forEach((k) => gradesQuickItems.add(QuickItemData(
             name: k["vak"]["naam"],
             date: DateTime.parse(DateFormat("yyyy-MM-dd")
