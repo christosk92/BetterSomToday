@@ -15,6 +15,15 @@ import 'package:intl/intl.dart';
 
 dynamic authData;
 dynamic userItem;
+List<LesTijd> lesTijden;
+
+class LesTijd {
+  const LesTijd({this.nummer, this.begintijd, this.eindtijd});
+
+  final String nummer;
+  final String begintijd;
+  final String eindtijd;
+}
 
 class UserStorage {
   Future<String> get _localPath async {
@@ -100,7 +109,7 @@ Future<Map<String, dynamic>> tryAuthenticate(
   String basicAuth = 'Basic ' +
       base64Encode(utf8.encode(
           'D50E0C06-32D1-4B41-A137-A9A850C892C2:vDdWdKwPNaPCyhCDhaCnNeydyLxSGNJX'));
-
+  lesTijden = new List<LesTijd>();
   Map<String, String> headers = {
     'content-type': 'application/x-www-form-urlencoded',
     'accept': 'application/json',
@@ -131,6 +140,16 @@ Future<Map<String, dynamic>> tryAuthenticate(
           options: buildCacheOptions(Duration(days: 7)));
       returnMap["auth"] = forcedResponse.data;
       userItem = forcedResponse.data;
+
+      final leerlingCall = await dio.get(
+          userItem["persoon"]["links"][0]["href"] + '?additional=lestijden',
+          options: buildCacheOptions(Duration(days: 7)));
+      var lesTijdenTemp = leerlingCall.data["additionalObjects"]["lestijden"]["lesuren"];
+      lesTijdenTemp.forEach((k) => lesTijden.add(LesTijd(
+          begintijd: k["begintijd"].toString(),
+          eindtijd: k["eindtijd"].toString(),
+          nummer: k["nummer"].toString())));
+      print(lesTijden);
       return returnMap;
     } else {
       // If that call was not successful, throw an error.
@@ -144,6 +163,9 @@ Future<Map<String, dynamic>> tryAuthenticate(
       returnMap["error"] = e.message;
     }
     return returnMap;
+  } catch (err) {
+    returnMap["error"] = err;
+    print(err);
   }
 }
 
@@ -260,13 +282,13 @@ class SomDataService {
             subtitle: k["additionalObjects"]["docentAfkortingen"] +
                 " - " +
                 k["locatie"],
-            caption: k["beginLesuur"].toString())));
+            caption: lesTijden.firstWhere((element) => element.nummer == k["beginLesuur"].toString()).begintijd.replaceAll(":00", ""))));
       }
     } on DioError catch (e) {
       print("error " + e.message);
     }
     roosterQuickItems.sort((a, b) {
-      return int.parse(a.caption).compareTo(int.parse(b.caption));
+      return int.parse(a.caption.split(":")[0]).compareTo(int.parse(b.caption.split(":")[0]));
     });
     itemsToReturn.add(roosterQuickItems);
     var quickGrades = await getQuickGradeItem();
@@ -278,10 +300,10 @@ class SomDataService {
     for (int i = 0; i < 1000; i += 10) {}
   }
 
-
-  static void setCacheNull(){
+  static void setCacheNull() {
     cachedGrades = null;
   }
+
   static List<QuickItemData> cachedGrades;
   static Future<List<QuickItemData>> getQuickGradeItem() async {
     if (cachedGrades == null) {
@@ -305,8 +327,8 @@ class SomDataService {
           if (response.statusCode == 200 || response.statusCode == 206) {
             var data = response.data["items"];
             print(data.length);
-            var _f = List.from(data).where((element) =>
-                element["type"] == "Toetskolom");
+            var _f = List.from(data)
+                .where((element) => element["type"] == "Toetskolom");
             _f.forEach((k) => gradesQuickItems.add(QuickItemData(
                 name: k["vak"]["naam"],
                 date: DateTime.parse(DateFormat("yyyy-MM-dd")
