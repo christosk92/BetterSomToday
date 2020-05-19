@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/layout/letter_spacing.dart';
 import 'package:better_som_today/studies/som/colors.dart';
+import 'package:better_som_today/studies/som/data.dart';
 import 'package:better_som_today/studies/som/home.dart';
 import 'package:better_som_today/studies/som/login.dart';
 
@@ -30,7 +31,7 @@ class SomApp extends StatelessWidget {
       initialRoute: loginRoute,
       routes: <String, WidgetBuilder>{
         homeRoute: (context) => const HomePage(),
-        loginRoute: (context) => const LoginPage(),
+        loginRoute: (context) => LoginPage(storage: UserStorage()),
       },
     );
   }

@@ -136,15 +136,15 @@ class QuickItemView extends StatelessWidget {
 
 
 QuickItemView buildQuickRoosterViewFromAccountData(
-  QuickRoosterData model,
+  QuickItemData model,
   int accountDataIndex,
   BuildContext context,
 ) {
   return QuickItemView(
     suffix: const Icon(Icons.chevron_right, color: Colors.grey),
     title: model.name,
-    subtitle: model.teacher,
-    amount: model.time,
+    subtitle: model.subtitle,
+    amount: model.caption,
     semanticsLabel: model.name,
     indicatorColor: RallyColors.accountColor(accountDataIndex),
     indicatorFraction: 1,
@@ -152,7 +152,7 @@ QuickItemView buildQuickRoosterViewFromAccountData(
 }
 
 List<QuickItemView> buildQuickRoosterListView(
-  List<QuickRoosterData> items,
+  List<QuickItemData> items,
   BuildContext context,
 ) {
   return List<QuickItemView>.generate(
@@ -162,15 +162,15 @@ List<QuickItemView> buildQuickRoosterListView(
 }
 
 QuickItemView buildQuickGradeViewFromAccountData(
-  CijferData model,
+  QuickItemData model,
   int accountDataIndex,
   BuildContext context,
 ) {
   return QuickItemView(
     suffix: const Icon(Icons.chevron_right, color: Colors.grey),
     title: model.name,
-    amount: model.grade.toString(),
-    subtitle: model.date,
+    amount: model.caption.toString(),
+    subtitle: model.subtitle,
     semanticsLabel: model.name,
     indicatorColor: RallyColors.accountColor(accountDataIndex),
     indicatorFraction: 1,
@@ -178,7 +178,7 @@ QuickItemView buildQuickGradeViewFromAccountData(
 }
 
 List<QuickItemView> buildQuickGradeListView(
-  List<CijferData> items,
+  List<QuickItemData> items,
   BuildContext context,
 ) {
   return List<QuickItemView>.generate(
@@ -190,7 +190,7 @@ List<QuickItemView> buildQuickGradeListView(
 
 class FullRoosterPage extends StatelessWidget {
   final List<DetailedEventData> items =
-      DummyDataService.getDetailedEventItems();
+      SomDataService.getDetailedEventItems();
 
   @override
   Widget build(BuildContext context) {

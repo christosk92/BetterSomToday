@@ -23,7 +23,7 @@ class _SettingsViewState extends State<SettingsView> {
           shrinkWrap: true,
           children: [
             for (String title
-                in DummyDataService.getSettingsTitles(context)) ...[
+                in SomDataService.getSettingsTitles(context)) ...[
               _SettingsItem(title),
               const Divider(
                 color: RallyColors.dividerColor,

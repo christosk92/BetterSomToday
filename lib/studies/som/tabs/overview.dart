@@ -21,65 +21,84 @@ class OverviewView extends StatefulWidget {
 class _OverviewViewState extends State<OverviewView> {
   @override
   Widget build(BuildContext context) {
+    Future<List<List<QuickItemData>>> quickItemsAsync() async {
+      return await SomDataService.getQuickItemsAsync();
+    }
+
+    final quickGradeDataList = SomDataService.getQuickGradeItem();
+    final double spacing = 12;
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            const _OverviewGrid(spacing: 12),
-          ],
-        ),
-      ),
-    );
-  }
-}
+        child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: FutureBuilder<List<List<QuickItemData>>>(
+                future: quickItemsAsync(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<List<QuickItemData>>> snapshot) {
+                  List<Widget> children;
+                  if (snapshot.hasData) {
+                    children = <Widget>[
+                      Column(children: [
+                        const SizedBox(height: 12),
+                        LayoutBuilder(builder: (context, constraints) {
+                          // Only display multiple columns when the constraints allow it and we
+                          // have a regular text scale factor.
+                          final hasMultipleColumns = false;
+                          final boxWidth = hasMultipleColumns
+                              ? constraints.maxWidth / 2 - spacing / 2
+                              : double.infinity;
 
-class _OverviewGrid extends StatelessWidget {
-  const _OverviewGrid({Key key, @required this.spacing}) : super(key: key);
-
-  final double spacing;
-
-  @override
-  Widget build(BuildContext context) {
-    final quickRoosterDataList = DummyDataService.getQuickRoosterItem(context);
-    final quickGradeDataList = DummyDataService.getQuickGradeItem(context);
-
-    return LayoutBuilder(builder: (context, constraints) {
-
-      // Only display multiple columns when the constraints allow it and we
-      // have a regular text scale factor.
-      final hasMultipleColumns = false;
-      final boxWidth = hasMultipleColumns
-          ? constraints.maxWidth / 2 - spacing / 2
-          : double.infinity;
-
-      return Wrap(
-        runSpacing: spacing,
-        children: [
-          Container(
-            width: boxWidth,
-            child: _QuickRoosterView(
-              title: 'VOLGENDE LESSEN',
-              subtitle: currentDate(),
-              quickItems:
-                  buildQuickRoosterListView(quickRoosterDataList, context),
-              order: 1,
-            ),
-          ),
-          if (hasMultipleColumns) SizedBox(width: spacing),
-          Container(
-            width: boxWidth,
-            child: _QuickRoosterView(
-              title: 'LAATSTE CIJFERS',
-              subtitle: averageLatestGrades(quickGradeDataList),
-              quickItems: buildQuickGradeListView(quickGradeDataList, context),
-              order: 2,
-            ),
-          )
-        ],
-      );
-    });
+                          return Wrap(
+                            runSpacing: spacing,
+                            children: [
+                              Container(
+                                width: boxWidth,
+                                child: _QuickRoosterView(
+                                  title: 'VOLGENDE LESSEN',
+                                  subtitle: currentDate(),
+                                  quickItems: buildQuickRoosterListView(
+                                      snapshot.data[0], context),
+                                  order: 1,
+                                ),
+                              ),
+                              if (hasMultipleColumns) SizedBox(width: spacing),
+                              Container(
+                                width: boxWidth,
+                                child: _QuickRoosterView(
+                                  title: 'LAATSTE CIJFERS',
+                                  subtitle:
+                                      averageLatestGrades(quickGradeDataList),
+                                  quickItems: buildQuickGradeListView(
+                                      snapshot.data[1], context),
+                                  order: 2,
+                                ),
+                              )
+                            ],
+                          );
+                        })
+                      ])
+                    ];
+                  } else {
+            children = <Widget>[
+              SizedBox(
+                child: CircularProgressIndicator(),
+                width: 60,
+                height: 60,
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 16),
+                child: Text('Awaiting result...'),
+              )
+            ];
+          }
+                  return Container(
+                      alignment: Alignment.center,
+                      child: SingleChildScrollView(
+                          // new line
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: children,
+                      )));
+                })));
   }
 }
 

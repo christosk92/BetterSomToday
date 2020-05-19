@@ -8,9 +8,47 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
-
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 dynamic authData;
 dynamic userItem;
+class UserStorage {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/userdata.txt');
+  }
+
+  Future<List<String>> readUserdata() async {
+    try {
+      final file = await _localFile;
+
+      // Read the file
+      var contents = await file.readAsLines();
+
+      return contents;
+    } catch (e) {
+      // If encountering an error, return 0
+      return null;
+    }
+  }
+
+  Future<File> writeUserData(String username, String password, String uuid) async {
+    final file = await _localFile;
+    var contents = """
+      $username
+      $password
+      $uuid
+      """;
+    // Write the file
+    return file.writeAsString('$contents');
+  }
+}
 
 class CacheInterceptor extends Interceptor {
   CacheInterceptor();
@@ -41,7 +79,7 @@ class CacheInterceptor extends Interceptor {
   }
 }
 
-Future<Map<String, String>> tryAuthenticate(String username, String password) async {
+Future<Map<String, dynamic>> tryAuthenticate(String username, String password) async {
   Dio dio = new Dio();
   dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
   try {
@@ -69,7 +107,7 @@ Future<Map<String, String>> tryAuthenticate(String username, String password) as
     'grant_type': 'password'
   };
   dio.options.headers.addAll(headers);
-  var returnMap = new Map<String, String>();
+  var returnMap = new Map<String, dynamic>();
   try {
     final response = await dio.post('https://somtoday.nl/oauth2/token',
         data: body, options: buildCacheOptions(Duration(seconds: 3500)));
@@ -110,7 +148,12 @@ String currentDate() {
   return formattedDate;
 }
 
-String averageLatestGrades(List<CijferData> items) => '7.4';
+String averageLatestGrades(List<QuickItemData> items){
+    List<double> projectedGrades = items.map((value) => double.parse(value.caption)).toList();
+    var sumOfGrades = projectedGrades.map<double>((m) => m).reduce((a,b )=>a+b);
+    var average = sumOfGrades / projectedGrades.length;
+    return average.toString();
+}
 
 /// Utility function to sum up values in a list.
 double sumOf<T>(List<T> list, double Function(T elt) getValue) {
@@ -123,14 +166,14 @@ double sumOf<T>(List<T> list, double Function(T elt) getValue) {
 
 /// A data model for an item
 ///
-class QuickRoosterData {
-  const QuickRoosterData({this.name, this.time, this.teacher});
+class QuickItemData {
+  const QuickItemData({this.name, this.caption, this.subtitle});
 
   final String name;
 
-  final String time;
+  final String subtitle;
 
-  final String teacher;
+  final String caption;
 }
 
 class SchoolListItem {
@@ -139,29 +182,6 @@ class SchoolListItem {
   final String uuid;
 
   final String naam;
-}
-
-/// A data model for a grade
-///
-class CijferData {
-  const CijferData({
-    this.name,
-    this.grade,
-    this.date,
-    this.isVoldoende,
-  });
-
-  /// The display name of this entity.
-  final String name;
-
-  /// The primary amount or value of this entity.
-  final double grade;
-
-  /// The due date of this bill.
-  final String date;
-
-  /// If this bill has been paid.
-  final bool isVoldoende;
 }
 
 class DetailedEventData {
@@ -190,43 +210,47 @@ class UserDetailData {
 /// Class to return dummy data lists.
 ///
 /// In a real app, this might be replaced with some asynchronous service.
-class DummyDataService {
-  static List<QuickRoosterData> getQuickRoosterItem(BuildContext context) {
-    return <QuickRoosterData>[
-      QuickRoosterData(
+class SomDataService {
+  static Future<List<List<QuickItemData>>> getQuickItemsAsync() async {
+    var itemsToReturn = new List<List<QuickItemData>>();
+    var roosterQuickItems = <QuickItemData>[
+      QuickItemData(
         name: 'Wiskunde B',
-        teacher: 'Dhr. R. Stokking',
-        time: '09:30 - 10:15',
+        subtitle: 'Dhr. R. Stokking',
+        caption: '09:30 - 10:15',
       ),
-      QuickRoosterData(
+      QuickItemData(
         name: 'Natuurkunde',
-        teacher: 'K. Roeleveld',
-        time: '10:30 - 11:15',
+        subtitle: 'K. Roeleveld',
+        caption: '10:30 - 11:15',
       ),
-      QuickRoosterData(
+      QuickItemData(
         name: 'Natuurkunde',
-        teacher: 'K. Roeleveld',
-        time: '11:15 - 12:00',
+        subtitle: 'K. Roeleveld',
+        caption: '11:15 - 12:00',
       ),
     ];
+    itemsToReturn.add(roosterQuickItems);
+        itemsToReturn.add(getQuickGradeItem());
+        return itemsToReturn;
   }
 
-  static List<CijferData> getQuickGradeItem(BuildContext context) {
-    return <CijferData>[
-      CijferData(
+  static List<QuickItemData> getQuickGradeItem() {
+    return <QuickItemData>[
+      QuickItemData(
         name: 'Wiskunde B',
-        grade: 9.5,
-        date: '2020-01-01',
+        caption: 9.5.toString(),
+        subtitle: '2020-01-01',
       ),
-      CijferData(
+      QuickItemData(
         name: 'Wiskunde B',
-        grade: 10.0,
-        date: '2020-01-01',
+        caption: 10.0.toString(),
+        subtitle: '2020-01-01',
       ),
-      CijferData(
+      QuickItemData(
         name: 'Wiskunde B',
-        grade: 7.5,
-        date: '2020-01-01',
+        caption: 7.5.toString(),
+        subtitle: '2020-01-01',
       ),
     ];
   }

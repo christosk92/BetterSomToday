@@ -8,7 +8,6 @@ import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:better_som_today/routes.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:better_som_today/constants.dart';
-
 import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/pages/backdrop.dart';
 
