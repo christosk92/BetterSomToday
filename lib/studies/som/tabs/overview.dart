@@ -26,94 +26,100 @@ class _OverviewViewState extends State<OverviewView> {
     }
 
     final double spacing = 12;
-    return SingleChildScrollView(
-        child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: FutureBuilder<List<List<QuickItemData>>>(
-                future: quickItemsAsync(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<List<List<QuickItemData>>> snapshot) {
-                  List<Widget> children;
-                  if (snapshot.hasData) {
-                    children = <Widget>[
-                      Column(children: [
-                        const SizedBox(height: 12),
-                        LayoutBuilder(builder: (context, constraints) {
-                          // Only display multiple columns when the constraints allow it and we
-                          // have a regular text scale factor.
-                          final hasMultipleColumns = false;
-                          final boxWidth = hasMultipleColumns
-                              ? constraints.maxWidth / 2 - spacing / 2
-                              : double.infinity;
-                          final theme = Theme.of(context);
-                          return Wrap(
-                            runSpacing: spacing,
-                            children: [
-                              if (snapshot.data[0].length > 0)
-                                Container(
-                                  width: boxWidth,
-                                  child: _QuickRoosterView(
-                                    title: 'VOLGENDE LESSEN',
-                                    subtitle: currentDate(),
-                                    quickItems: buildQuickRoosterListView(
-                                        snapshot.data[0], context),
-                                    order: 1,
-                                  ),
-                                ),
-                              if (snapshot.data[0].length == 0)
-                                Container(
-                                    width: boxWidth,
-                                    child: _emptyView(
-                                        title: "VOLGENDE LESSEN",
-                                        subtitle: "Geen lessen",
-                                        order: 2)),
-                              if (hasMultipleColumns) SizedBox(width: spacing),
-                              if (snapshot.data[1].length > 0)
-                                Container(
-                                  width: boxWidth,
-                                  child: _QuickRoosterView(
-                                    title: 'LAATSTE CIJFERS',
-                                    subtitle: averageLatestGrades(
-                                        snapshot.data[1], 3),
-                                    quickItems: buildQuickGradeListView(
-                                        snapshot.data[1], context),
-                                    order: 2,
-                                  ),
-                                ),
-                              if (snapshot.data[1].length == 0)
-                                Container(
-                                    width: boxWidth,
-                                    child: _emptyView(
-                                        title: "LAATSTE CIJFERS",
-                                        subtitle: "Geen cijfers",
-                                        order: 2))
-                            ],
-                          );
-                        })
-                      ])
-                    ];
-                  } else {
-                    children = <Widget>[
-                      SizedBox(
-                        child: CircularProgressIndicator(),
-                        width: 60,
-                        height: 60,
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.only(top: 16),
-                        child: Text('Awaiting result...'),
-                      )
-                    ];
-                  }
-                  return Container(
-                      alignment: Alignment.center,
-                      child: SingleChildScrollView(
-                          // new line
-                          child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: children,
-                      )));
-                })));
+    return RefreshIndicator(
+      child: FutureBuilder<List<List<QuickItemData>>>(
+          future: quickItemsAsync(),
+          builder: (BuildContext context,
+              AsyncSnapshot<List<List<QuickItemData>>> snapshot) {
+            List<Widget> children;
+            if (snapshot.hasData) {
+              children = <Widget>[
+                Column(children: [
+                  const SizedBox(height: 12),
+                  LayoutBuilder(builder: (context, constraints) {
+                    // Only display multiple columns when the constraints allow it and we
+                    // have a regular text scale factor.
+                    final hasMultipleColumns = false;
+                    final boxWidth = hasMultipleColumns
+                        ? constraints.maxWidth / 2 - spacing / 2
+                        : double.infinity;
+                    final theme = Theme.of(context);
+                    return Wrap(
+                      runSpacing: spacing,
+                      children: [
+                        if (snapshot.data[0].length > 0)
+                          Container(
+                            width: boxWidth,
+                            child: _QuickRoosterView(
+                              title: 'VOLGENDE LESSEN',
+                              subtitle: currentDate(),
+                              quickItems: buildQuickRoosterListView(
+                                  snapshot.data[0], context),
+                              order: 1,
+                            ),
+                          ),
+                        if (snapshot.data[0].length == 0)
+                          Container(
+                              width: boxWidth,
+                              child: _emptyView(
+                                  title: "VOLGENDE LESSEN",
+                                  subtitle: "Geen lessen",
+                                  order: 2)),
+                        if (hasMultipleColumns) SizedBox(width: spacing),
+                        if (snapshot.data[1].length > 0)
+                          Container(
+                            width: boxWidth,
+                            child: _QuickRoosterView(
+                              title: 'LAATSTE CIJFERS',
+                              subtitle:
+                                  averageLatestGrades(snapshot.data[1], 3),
+                              quickItems: buildQuickGradeListView(
+                                  snapshot.data[1], context),
+                              order: 2,
+                            ),
+                          ),
+                        if (snapshot.data[1].length == 0)
+                          Container(
+                              width: boxWidth,
+                              child: _emptyView(
+                                  title: "LAATSTE CIJFERS",
+                                  subtitle: "Geen cijfers",
+                                  order: 2))
+                      ],
+                    );
+                  })
+                ])
+              ];
+            } else {
+              children = <Widget>[
+                SizedBox(
+                  child: CircularProgressIndicator(),
+                  width: 60,
+                  height: 60,
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16),
+                  child: Text('Awaiting result...'),
+                )
+              ];
+            }
+            return Container(
+                alignment: Alignment.center,
+                child: SingleChildScrollView(
+                    // new line
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: children,
+                )));
+          }),
+      onRefresh: _getData,
+    );
+  }
+
+  Future<void> _getData() async {
+    setState(() {
+      SomDataService.setCacheNull();
+    });
   }
 }
 

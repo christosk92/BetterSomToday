@@ -278,6 +278,10 @@ class SomDataService {
     for (int i = 0; i < 1000; i += 10) {}
   }
 
+
+  static void setCacheNull(){
+    cachedGrades = null;
+  }
   static List<QuickItemData> cachedGrades;
   static Future<List<QuickItemData>> getQuickGradeItem() async {
     if (cachedGrades == null) {
