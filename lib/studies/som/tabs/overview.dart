@@ -25,7 +25,6 @@ class _OverviewViewState extends State<OverviewView> {
       return await SomDataService.getQuickItemsAsync(context);
     }
 
-    final quickGradeDataList = SomDataService.getQuickGradeItem();
     final double spacing = 12;
     return SingleChildScrollView(
         child: Padding(
@@ -46,39 +45,55 @@ class _OverviewViewState extends State<OverviewView> {
                           final boxWidth = hasMultipleColumns
                               ? constraints.maxWidth / 2 - spacing / 2
                               : double.infinity;
-
+                          final theme = Theme.of(context);
                           return Wrap(
                             runSpacing: spacing,
                             children: [
-                              Container(
-                                width: boxWidth,
-                                child: _QuickRoosterView(
-                                  title: 'VOLGENDE LESSEN',
-                                  subtitle: currentDate(),
-                                  quickItems: buildQuickRoosterListView(
-                                      snapshot.data[0], context),
-                                  order: 1,
+                              if (snapshot.data[0].length > 0)
+                                Container(
+                                  width: boxWidth,
+                                  child: _QuickRoosterView(
+                                    title: 'VOLGENDE LESSEN',
+                                    subtitle: currentDate(),
+                                    quickItems: buildQuickRoosterListView(
+                                        snapshot.data[0], context),
+                                    order: 1,
+                                  ),
                                 ),
-                              ),
+                              if (snapshot.data[0].length == 0)
+                                Container(
+                                    width: boxWidth,
+                                    child: _emptyView(
+                                        title: "VOLGENDE LESSEN",
+                                        subtitle: "Geen lessen",
+                                        order: 2)),
                               if (hasMultipleColumns) SizedBox(width: spacing),
-                              Container(
-                                width: boxWidth,
-                                child: _QuickRoosterView(
-                                  title: 'LAATSTE CIJFERS',
-                                  subtitle:
-                                      averageLatestGrades(snapshot.data[1], 3),
-                                  quickItems: buildQuickGradeListView(
-                                      snapshot.data[1], context),
-                                  order: 2,
+                              if (snapshot.data[1].length > 0)
+                                Container(
+                                  width: boxWidth,
+                                  child: _QuickRoosterView(
+                                    title: 'LAATSTE CIJFERS',
+                                    subtitle: averageLatestGrades(
+                                        snapshot.data[1], 3),
+                                    quickItems: buildQuickGradeListView(
+                                        snapshot.data[1], context),
+                                    order: 2,
+                                  ),
                                 ),
-                              )
+                              if (snapshot.data[1].length == 0)
+                                Container(
+                                    width: boxWidth,
+                                    child: _emptyView(
+                                        title: "LAATSTE CIJFERS",
+                                        subtitle: "Geen cijfers",
+                                        order: 2))
                             ],
                           );
                         })
                       ])
                     ];
                   } else {
-                    children = <Widget>[ 
+                    children = <Widget>[
                       SizedBox(
                         child: CircularProgressIndicator(),
                         width: 60,
@@ -99,6 +114,59 @@ class _OverviewViewState extends State<OverviewView> {
                         children: children,
                       )));
                 })));
+  }
+}
+
+class _emptyView extends StatelessWidget {
+  const _emptyView({
+    this.title,
+    this.subtitle,
+    this.order,
+  });
+
+  final String title;
+  final String subtitle;
+  final double order;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return FocusTraversalOrder(
+      order: NumericFocusOrder(order),
+      child: Container(
+        color: RallyColors.cardBackground,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            MergeSemantics(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      left: 16,
+                      right: 16,
+                    ),
+                    child: Text(title),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16),
+                    child: Text(
+                      subtitle,
+                      style: theme.textTheme.bodyText1.copyWith(
+                        fontSize: 44 / reducedTextScale(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

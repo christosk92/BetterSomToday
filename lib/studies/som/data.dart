@@ -274,48 +274,53 @@ class SomDataService {
     return itemsToReturn;
   }
 
- Future<List<QuickItemData>> initGradesLoad() async{
-   for(int i = 0; i < 1000; i+=10){
+  Future<List<QuickItemData>> initGradesLoad() async {
+    for (int i = 0; i < 1000; i += 10) {}
+  }
 
-   }
- }
-
+  static List<QuickItemData> cachedGrades;
   static Future<List<QuickItemData>> getQuickGradeItem() async {
-    Dio dio = new Dio();
-    dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
-    var authToken = authData["access_token"];
-    dio.options.headers["Authorization"] = "Bearer " + authToken;
-    dio.options.headers["accept"] = "application/json";
-    dio.options.headers["Range"] = "items=40-100000000";
+    if (cachedGrades == null) {
+      Dio dio = new Dio();
+      dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
+      var authToken = authData["access_token"];
+      dio.options.headers["Authorization"] = "Bearer " + authToken;
+      dio.options.headers["accept"] = "application/json";
 
-    var additionalObjects =
-        "additional=berekendRapportCijfer&additional=samengesteldeToetskolomId&additional=resultaatkolomId&additional=cijferkolomId&additional=toetssoortnaam&additional=huidigeAnderVakKolommen";
-    var gradesQuickItems = new List<QuickItemData>();
-    try {
-      final response = await dio.get(
-          authData['somtoday_api_url'] +
+      var additionalObjects =
+          "additional=berekendRapportCijfer&additional=samengesteldeToetskolomId&additional=resultaatkolomId&additional=cijferkolomId&additional=toetssoortnaam&additional=huidigeAnderVakKolommen";
+      var gradesQuickItems = new List<QuickItemData>();
+      for (int i = 0; i < 500; i += 60) {
+        try {
+          dio.options.headers["Range"] = "items=${i}-${i + 61}";
+          final response = await dio.get(authData['somtoday_api_url'] +
               '/rest/v1/resultaten/huidigVoorLeerling/' +
               userItem["persoon"]["links"][0]["id"].toString() +
               '?' +
-              additionalObjects,
-          options: buildCacheOptions(Duration(seconds: 120)));
-      if (response.statusCode == 200 || response.statusCode == 206) {
-        var data = response.data["items"];
-        var _f = List.from(data).where((element) => element["type"] == "Toetskolom");
-        _f.forEach((k) => gradesQuickItems.add(QuickItemData(
-            name: k["vak"]["naam"],
-            date: DateTime.parse(DateFormat("yyyy-MM-dd")
-                .format(DateTime.parse(k["datumInvoer"]))),
-            subtitle: k["omschrijving"],
-            caption: k["resultaat"].toString())));
+              additionalObjects);
+          if (response.statusCode == 200 || response.statusCode == 206) {
+            var data = response.data["items"];
+            print(data.length);
+            var _f = List.from(data).where((element) =>
+                element["type"] == "Toetskolom");
+            _f.forEach((k) => gradesQuickItems.add(QuickItemData(
+                name: k["vak"]["naam"],
+                date: DateTime.parse(DateFormat("yyyy-MM-dd")
+                    .format(DateTime.parse(k["datumInvoer"]))),
+                subtitle: k["omschrijving"],
+                caption: k["resultaat"].toString())));
+            cachedGrades = gradesQuickItems;
+          }
+        } on DioError catch (e) {
+          print("error " + e.message);
+        }
       }
-    } on DioError catch (e) {
-      print("error " + e.message);
     }
-    gradesQuickItems.sort((a, b) {
+    var distinctGrades = cachedGrades.toSet().toList();
+    distinctGrades.sort((a, b) {
       return b.date.compareTo(a.date);
     });
-    return gradesQuickItems
+    return distinctGrades
         .where((element) => element.caption != "null")
         .toList();
   }
