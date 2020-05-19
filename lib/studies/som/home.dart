@@ -9,7 +9,7 @@ import 'package:better_som_today/studies/som/tabs/accounts.dart';
 import 'package:better_som_today/studies/som/tabs/overview.dart';
 import 'package:better_som_today/studies/som/tabs/settings.dart';
 
-const int tabCount = 3;
+const int tabCount = 4;
 const int turnsToRotateRight = 1;
 const int turnsToRotateLeft = 3;
 
@@ -167,9 +167,17 @@ class _HomePageState extends State<HomePage>
       ),
       _RallyTab(
         theme: theme,
-        iconData: Icons.attach_money,
+        iconData: Icons.check_box,
         title: 'CIJFERS',
         tabIndex: 1,
+        tabController: _tabController,
+        isVertical: isVertical,
+      ),
+       _RallyTab(
+        theme: theme,
+        iconData: Icons.edit,
+        title: 'HUISWERK',
+        tabIndex: 2,
         tabController: _tabController,
         isVertical: isVertical,
       ),
@@ -177,7 +185,7 @@ class _HomePageState extends State<HomePage>
         theme: theme,
         iconData: Icons.settings,
         title: 'INSTELLINGEN',
-        tabIndex: 4,
+        tabIndex: 3,
         tabController: _tabController,
         isVertical: isVertical,
       ),
@@ -187,6 +195,7 @@ class _HomePageState extends State<HomePage>
   List<Widget> _buildTabViews() {
     return [
       OverviewView(),
+      AccountsView(),
       AccountsView(),
       SettingsView(),
     ];
@@ -255,7 +264,7 @@ class _RallyTabState extends State<_RallyTab>
       vsync: this,
     );
     _titleSizeAnimation = _controller.view;
-    _titleFadeAnimation = _controller.drive(CurveTween(curve: Curves.easeOut));
+    _titleFadeAnimation = _controller.drive(CurveTween(curve: Curves.easeInQuint));
     _iconFadeAnimation = _controller.drive(Tween<double>(begin: 0.6, end: 1));
     if (widget.isExpanded) {
       _controller.value = 1;

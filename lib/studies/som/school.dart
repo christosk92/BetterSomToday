@@ -199,6 +199,7 @@ class FullRoosterPage extends StatelessWidget {
     return ApplyTextOptions(
       child: Scaffold(
         appBar: AppBar(
+          leading: new Container(),
           elevation: 0,
           centerTitle: true,
           title: Text(

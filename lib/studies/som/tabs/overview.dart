@@ -22,7 +22,7 @@ class _OverviewViewState extends State<OverviewView> {
   @override
   Widget build(BuildContext context) {
     Future<List<List<QuickItemData>>> quickItemsAsync() async {
-      return await SomDataService.getQuickItemsAsync();
+      return await SomDataService.getQuickItemsAsync(context);
     }
 
     final quickGradeDataList = SomDataService.getQuickGradeItem();

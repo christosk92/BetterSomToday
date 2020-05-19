@@ -10,8 +10,11 @@ import 'package:dio/dio.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'package:json_annotation/json_annotation.dart';
+
 dynamic authData;
 dynamic userItem;
+
 class UserStorage {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
@@ -38,7 +41,8 @@ class UserStorage {
     }
   }
 
-  Future<File> writeUserData(String username, String password, String uuid) async {
+  Future<File> writeUserData(
+      String username, String password, String uuid) async {
     final file = await _localFile;
     var contents = """
       $username
@@ -79,7 +83,8 @@ class CacheInterceptor extends Interceptor {
   }
 }
 
-Future<Map<String, dynamic>> tryAuthenticate(String username, String password) async {
+Future<Map<String, dynamic>> tryAuthenticate(
+    String username, String password) async {
   Dio dio = new Dio();
   dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
   try {
@@ -148,11 +153,13 @@ String currentDate() {
   return formattedDate;
 }
 
-String averageLatestGrades(List<QuickItemData> items){
-    List<double> projectedGrades = items.map((value) => double.parse(value.caption)).toList();
-    var sumOfGrades = projectedGrades.map<double>((m) => m).reduce((a,b )=>a+b);
-    var average = sumOfGrades / projectedGrades.length;
-    return average.toString();
+String averageLatestGrades(List<QuickItemData> items) {
+  List<double> projectedGrades =
+      items.map((value) => double.parse(value.caption)).toList();
+  var sumOfGrades =
+      projectedGrades.map<double>((m) => m).reduce((a, b) => a + b);
+  var average = sumOfGrades / projectedGrades.length;
+  return average.toString();
 }
 
 /// Utility function to sum up values in a list.
@@ -211,28 +218,53 @@ class UserDetailData {
 ///
 /// In a real app, this might be replaced with some asynchronous service.
 class SomDataService {
-  static Future<List<List<QuickItemData>>> getQuickItemsAsync() async {
+  static Future<List<List<QuickItemData>>> getQuickItemsAsync(
+      BuildContext context) async {
     var itemsToReturn = new List<List<QuickItemData>>();
-    var roosterQuickItems = <QuickItemData>[
-      QuickItemData(
-        name: 'Wiskunde B',
-        subtitle: 'Dhr. R. Stokking',
-        caption: '09:30 - 10:15',
-      ),
-      QuickItemData(
-        name: 'Natuurkunde',
-        subtitle: 'K. Roeleveld',
-        caption: '10:30 - 11:15',
-      ),
-      QuickItemData(
-        name: 'Natuurkunde',
-        subtitle: 'K. Roeleveld',
-        caption: '11:15 - 12:00',
-      ),
-    ];
+
+    Dio dio = new Dio();
+    dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
+    var authToken = authData["access_token"];
+    dio.options.headers["Authorization"] = "Bearer " + authToken;
+    dio.options.headers["accept"] = "application/json";
+    DateTime today = DateTime.now();
+    var _firstDayOfTheweek = today
+        .subtract(new Duration(days: today.weekday))
+        .add(new Duration(days: 1));
+    //var startDate = DateFormat('yyyy-MM-dd').format(_firstDayOfTheweek);
+    //var endDate = DateFormat('yyyy-MM-dd')
+        //.format(_firstDayOfTheweek.add(new Duration(days: 6)));
+        var startDate = DateFormat('yyyy-MM-dd').format(today);
+        var endDate = DateFormat('yyyy-MM-dd').format(today.add(new Duration(days: 1)));
+    var additionalObjects =
+        "sort=asc-id&additional=vak&additional=docentAfkortingen&additional=leerlingen&begindatum=" +
+            startDate +
+            "&einddatum=" +
+            endDate;
+    var roosterQuickItems = new List<QuickItemData>();
+    try {
+      final response = await dio.get(
+          authData['somtoday_api_url'] +
+              '/rest/v1/afspraken?' +
+              additionalObjects,
+          options: buildCacheOptions(Duration(seconds: 120)));
+      if (response.statusCode == 200 || response.statusCode == 206) {
+        var data = response.data["items"];
+        data.forEach((k) => roosterQuickItems.add(QuickItemData(
+          name: k["additionalObjects"]["vak"]["naam"],
+          subtitle: k["additionalObjects"]["docentAfkortingen"] + " - " + k["locatie"],
+          caption: k["beginLesuur"].toString()
+        )));
+      }
+    } on DioError catch (e) {
+      print("error " + e.message);
+    }
+    roosterQuickItems.sort((a, b) {
+        return int.parse(a.caption).compareTo(int.parse(b.caption));
+      });
     itemsToReturn.add(roosterQuickItems);
-        itemsToReturn.add(getQuickGradeItem());
-        return itemsToReturn;
+    itemsToReturn.add(getQuickGradeItem());
+    return itemsToReturn;
   }
 
   static List<QuickItemData> getQuickGradeItem() {
