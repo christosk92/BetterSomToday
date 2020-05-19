@@ -189,9 +189,6 @@ List<QuickItemView> buildQuickGradeListView(
 
 
 class FullRoosterPage extends StatelessWidget {
-  final List<DetailedEventData> items =
-      SomDataService.getDetailedEventItems();
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = false;
@@ -216,12 +213,7 @@ class FullRoosterPage extends StatelessWidget {
                 child: ListView(
                   shrinkWrap: true,
                   children: [
-                    for (DetailedEventData detailedEventData in items)
-                      _DetailedEventCard(
-                        title: detailedEventData.title,
-                        date: detailedEventData.date,
-                        amount: detailedEventData.amount,
-                      ),
+                
                   ],
                 ),
               ),

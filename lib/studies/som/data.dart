@@ -11,6 +11,7 @@ import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:intl/intl.dart';
 
 dynamic authData;
 dynamic userItem;
@@ -153,13 +154,15 @@ String currentDate() {
   return formattedDate;
 }
 
-String averageLatestGrades(List<QuickItemData> items) {
+String averageLatestGrades(List<QuickItemData> initList) {
+  var items = initList.where((element) => element.caption != null);
   List<double> projectedGrades =
       items.map((value) => double.parse(value.caption)).toList();
   var sumOfGrades =
       projectedGrades.map<double>((m) => m).reduce((a, b) => a + b);
   var average = sumOfGrades / projectedGrades.length;
-  return average.toString();
+  var roundedAverage = average.toStringAsFixed(1);
+  return roundedAverage.toString();
 }
 
 /// Utility function to sum up values in a list.
@@ -174,10 +177,10 @@ double sumOf<T>(List<T> list, double Function(T elt) getValue) {
 /// A data model for an item
 ///
 class QuickItemData {
-  const QuickItemData({this.name, this.caption, this.subtitle});
+  const QuickItemData({this.name, this.caption, this.subtitle, this.date = null});
 
   final String name;
-
+  final DateTime date;
   final String subtitle;
 
   final String caption;
@@ -233,9 +236,10 @@ class SomDataService {
         .add(new Duration(days: 1));
     //var startDate = DateFormat('yyyy-MM-dd').format(_firstDayOfTheweek);
     //var endDate = DateFormat('yyyy-MM-dd')
-        //.format(_firstDayOfTheweek.add(new Duration(days: 6)));
-        var startDate = DateFormat('yyyy-MM-dd').format(today);
-        var endDate = DateFormat('yyyy-MM-dd').format(today.add(new Duration(days: 1)));
+    //.format(_firstDayOfTheweek.add(new Duration(days: 6)));
+    var startDate = DateFormat('yyyy-MM-dd').format(today);
+    var endDate =
+        DateFormat('yyyy-MM-dd').format(today.add(new Duration(days: 1)));
     var additionalObjects =
         "sort=asc-id&additional=vak&additional=docentAfkortingen&additional=leerlingen&begindatum=" +
             startDate +
@@ -251,81 +255,57 @@ class SomDataService {
       if (response.statusCode == 200 || response.statusCode == 206) {
         var data = response.data["items"];
         data.forEach((k) => roosterQuickItems.add(QuickItemData(
-          name: k["additionalObjects"]["vak"]["naam"],
-          subtitle: k["additionalObjects"]["docentAfkortingen"] + " - " + k["locatie"],
-          caption: k["beginLesuur"].toString()
-        )));
+            name: k["additionalObjects"]["vak"]["naam"],
+            subtitle: k["additionalObjects"]["docentAfkortingen"] +
+                " - " +
+                k["locatie"],
+            caption: k["beginLesuur"].toString())));
       }
     } on DioError catch (e) {
       print("error " + e.message);
     }
     roosterQuickItems.sort((a, b) {
-        return int.parse(a.caption).compareTo(int.parse(b.caption));
-      });
+      return int.parse(a.caption).compareTo(int.parse(b.caption));
+    });
     itemsToReturn.add(roosterQuickItems);
-    itemsToReturn.add(getQuickGradeItem());
+    var quickGrades = await getQuickGradeItem();
+    itemsToReturn.add(quickGrades);
     return itemsToReturn;
   }
 
-  static List<QuickItemData> getQuickGradeItem() {
-    return <QuickItemData>[
-      QuickItemData(
-        name: 'Wiskunde B',
-        caption: 9.5.toString(),
-        subtitle: '2020-01-01',
-      ),
-      QuickItemData(
-        name: 'Wiskunde B',
-        caption: 10.0.toString(),
-        subtitle: '2020-01-01',
-      ),
-      QuickItemData(
-        name: 'Wiskunde B',
-        caption: 7.5.toString(),
-        subtitle: '2020-01-01',
-      ),
-    ];
-  }
+  static Future<List<QuickItemData>> getQuickGradeItem() async {
+    Dio dio = new Dio();
+    dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
+    var authToken = authData["access_token"];
+    dio.options.headers["Authorization"] = "Bearer " + authToken;
+    dio.options.headers["accept"] = "application/json";
+    var additionalObjects =
+        "additional=berekendRapportCijfer&additional=samengesteldeToetskolomId&additional=resultaatkolomId&additional=cijferkolomId&additional=toetssoortnaam&additional=huidigeAnderVakKolommen";
+    var gradesQuickItems = new List<QuickItemData>();
+    try {
+      final response = await dio.get(
+          authData['somtoday_api_url'] +
+              '/rest/v1/resultaten/huidigVoorLeerling/' +
+              userItem["persoon"]["links"][0]["id"].toString() +
+              '?' +
+              additionalObjects,
+          options: buildCacheOptions(Duration(seconds: 120)));
+      if (response.statusCode == 200 || response.statusCode == 206) {
+        var data = response.data["items"];
+        data.forEach((k) => gradesQuickItems.add(QuickItemData(
+            name: k["vak"]["naam"],
+            date: DateTime.parse(DateFormat("yyyy-MM-dd").format(DateTime.parse(k["datumInvoer"]))),
+            subtitle: DateFormat("yyyy-MM-dd").format(DateTime.parse(k["datumInvoer"].toString())),
+            caption: k["resultaat"].toString())));
+      }
+    } on DioError catch (e) {
+      print("error " + e.message);
+    }
+    gradesQuickItems.sort((a, b) {
+      return b.date.compareTo(a.date);
+    });
 
-  static List<DetailedEventData> getDetailedEventItems() {
-    // The following titles are not localized as they're product/brand names.
-    return <DetailedEventData>[
-      DetailedEventData(
-        title: 'Genoe',
-        date: DateTime.utc(2019, 1, 24),
-        amount: -16.54,
-      ),
-      DetailedEventData(
-        title: 'Fortnightly Subscribe',
-        date: DateTime.utc(2019, 1, 5),
-        amount: -12.54,
-      ),
-      DetailedEventData(
-        title: 'Circle Cash',
-        date: DateTime.utc(2019, 1, 5),
-        amount: 365.65,
-      ),
-      DetailedEventData(
-        title: 'Crane Hospitality',
-        date: DateTime.utc(2019, 1, 4),
-        amount: -705.13,
-      ),
-      DetailedEventData(
-        title: 'ABC Payroll',
-        date: DateTime.utc(2018, 12, 15),
-        amount: 1141.43,
-      ),
-      DetailedEventData(
-        title: 'Shrine',
-        date: DateTime.utc(2018, 12, 15),
-        amount: -88.88,
-      ),
-      DetailedEventData(
-        title: 'Foodmates',
-        date: DateTime.utc(2018, 12, 4),
-        amount: -11.69,
-      ),
-    ];
+    return gradesQuickItems.where((element) => element.caption != "null").toList();
   }
 
   static List<String> getSettingsTitles(BuildContext context) {

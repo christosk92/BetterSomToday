@@ -66,7 +66,7 @@ class _OverviewViewState extends State<OverviewView> {
                                 child: _QuickRoosterView(
                                   title: 'LAATSTE CIJFERS',
                                   subtitle:
-                                      averageLatestGrades(quickGradeDataList),
+                                      averageLatestGrades(snapshot.data[1]),
                                   quickItems: buildQuickGradeListView(
                                       snapshot.data[1], context),
                                   order: 2,
