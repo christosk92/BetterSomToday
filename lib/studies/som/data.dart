@@ -154,10 +154,10 @@ String currentDate() {
   return formattedDate;
 }
 
-String averageLatestGrades(List<QuickItemData> initList) {
+String averageLatestGrades(List<QuickItemData> initList, int shown) {
   var items = initList.where((element) => element.caption != null);
   List<double> projectedGrades =
-      items.map((value) => double.parse(value.caption)).toList();
+      items.map((value) => double.parse(value.caption)).take(shown).toList();
   var sumOfGrades =
       projectedGrades.map<double>((m) => m).reduce((a, b) => a + b);
   var average = sumOfGrades / projectedGrades.length;
@@ -177,7 +177,8 @@ double sumOf<T>(List<T> list, double Function(T elt) getValue) {
 /// A data model for an item
 ///
 class QuickItemData {
-  const QuickItemData({this.name, this.caption, this.subtitle, this.date = null});
+  const QuickItemData(
+      {this.name, this.caption, this.subtitle, this.date = null});
 
   final String name;
   final DateTime date;
@@ -273,12 +274,20 @@ class SomDataService {
     return itemsToReturn;
   }
 
+ Future<List<QuickItemData>> initGradesLoad() async{
+   for(int i = 0; i < 1000; i+=10){
+
+   }
+ }
+
   static Future<List<QuickItemData>> getQuickGradeItem() async {
     Dio dio = new Dio();
     dio.interceptors.add(DioCacheManager(CacheConfig()).interceptor);
     var authToken = authData["access_token"];
     dio.options.headers["Authorization"] = "Bearer " + authToken;
     dio.options.headers["accept"] = "application/json";
+    dio.options.headers["Range"] = "items=40-100000000";
+
     var additionalObjects =
         "additional=berekendRapportCijfer&additional=samengesteldeToetskolomId&additional=resultaatkolomId&additional=cijferkolomId&additional=toetssoortnaam&additional=huidigeAnderVakKolommen";
     var gradesQuickItems = new List<QuickItemData>();
@@ -292,10 +301,12 @@ class SomDataService {
           options: buildCacheOptions(Duration(seconds: 120)));
       if (response.statusCode == 200 || response.statusCode == 206) {
         var data = response.data["items"];
-        data.forEach((k) => gradesQuickItems.add(QuickItemData(
+        var _f = List.from(data).where((element) => element["type"] == "Toetskolom" && double.parse(element["resultaat"] ?? "1.0") > 1);
+        _f.forEach((k) => gradesQuickItems.add(QuickItemData(
             name: k["vak"]["naam"],
-            date: DateTime.parse(DateFormat("yyyy-MM-dd").format(DateTime.parse(k["datumInvoer"]))),
-            subtitle: DateFormat("yyyy-MM-dd").format(DateTime.parse(k["datumInvoer"].toString())),
+            date: DateTime.parse(DateFormat("yyyy-MM-dd")
+                .format(DateTime.parse(k["datumInvoer"]))),
+            subtitle: k["omschrijving"],
             caption: k["resultaat"].toString())));
       }
     } on DioError catch (e) {
@@ -304,8 +315,9 @@ class SomDataService {
     gradesQuickItems.sort((a, b) {
       return b.date.compareTo(a.date);
     });
-
-    return gradesQuickItems.where((element) => element.caption != "null").toList();
+    return gradesQuickItems
+        .where((element) => element.caption != "null")
+        .toList();
   }
 
   static List<String> getSettingsTitles(BuildContext context) {

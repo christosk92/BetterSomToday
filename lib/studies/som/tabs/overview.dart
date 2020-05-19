@@ -66,7 +66,7 @@ class _OverviewViewState extends State<OverviewView> {
                                 child: _QuickRoosterView(
                                   title: 'LAATSTE CIJFERS',
                                   subtitle:
-                                      averageLatestGrades(snapshot.data[1]),
+                                      averageLatestGrades(snapshot.data[1], 3),
                                   quickItems: buildQuickGradeListView(
                                       snapshot.data[1], context),
                                   order: 2,
@@ -78,18 +78,18 @@ class _OverviewViewState extends State<OverviewView> {
                       ])
                     ];
                   } else {
-            children = <Widget>[
-              SizedBox(
-                child: CircularProgressIndicator(),
-                width: 60,
-                height: 60,
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 16),
-                child: Text('Awaiting result...'),
-              )
-            ];
-          }
+                    children = <Widget>[ 
+                      SizedBox(
+                        child: CircularProgressIndicator(),
+                        width: 60,
+                        height: 60,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 16),
+                        child: Text('Awaiting result...'),
+                      )
+                    ];
+                  }
                   return Container(
                       alignment: Alignment.center,
                       child: SingleChildScrollView(
