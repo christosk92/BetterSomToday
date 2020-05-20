@@ -45,7 +45,6 @@ class SomApp extends StatelessWidget {
       inputDecorationTheme: const InputDecorationTheme(
         labelStyle: TextStyle(
           color: RallyColors.gray,
-          fontWeight: FontWeight.w500,
         ),
         filled: true,
         fillColor: RallyColors.inputBackground,

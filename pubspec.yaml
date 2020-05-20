@@ -64,8 +64,3 @@ flutter:
     - assets/logo/somtoday.png
 
   uses-material-design: true
-  fonts:
-    - family: GalleryIcons
-      fonts:
-        - asset: fonts/GalleryIcons.ttf
-

@@ -12,6 +12,7 @@ import 'package:better_som_today/layout/text_scale.dart';
 import 'package:better_som_today/studies/som/colors.dart';
 import 'package:better_som_today/studies/som/data.dart';
 import 'package:better_som_today/studies/som/school.dart';
+import 'dart:io';
 
 /// A page that shows a status overview.
 class OverviewView extends StatefulWidget {
@@ -19,23 +20,46 @@ class OverviewView extends StatefulWidget {
   _OverviewViewState createState() => _OverviewViewState();
 }
 
-class _OverviewViewState extends State<OverviewView> {
+class _OverviewViewState extends State<OverviewView>
+    with AutomaticKeepAliveClientMixin<OverviewView> {
+  static bool _wantToKeepAlive = true;
+  static bool userInvokedLoading = false;
   @override
-  Widget build(BuildContext context) {
-    Future<List<List<QuickItemData>>> quickItemsAsync() async {
+  bool get wantKeepAlive => _wantToKeepAlive;
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<List<List<QuickItemData>>> quickItemsAsync() async {
+    return Future.microtask(() async {
       try {
+        try {
+          final result = await InternetAddress.lookup('google.com');
+          if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+            print('connected');
+          }
+        } on SocketException catch (_) {
+          print('not connected');
+          throw Exception('INTERNAL_ERROR');
+        }
         return await SomDataService.getQuickItemsAsync(context);
       } catch (e) {
-        await keyx.currentState
-            .showDiag("There was a problem", e.toString(), "OK");
-        var pseudoItems = new List<List<QuickItemData>>();
-        var pseudoError = new List<QuickItemData>();
-        pseudoError.add(QuickItemData(name: "ERROR_INTERNET"));
-        pseudoItems.add(pseudoError);
-        return pseudoItems;
+        if (e.message.toString() != "INTERNAL_ERROR") {
+          keyx.currentState.showDiag("There was a problem", e.toString(), "OK");
+        }
       }
-    }
+      var pseudoItems = new List<List<QuickItemData>>();
+      var pseudoError = new List<QuickItemData>();
+      pseudoError.add(QuickItemData(name: "ERROR_INTERNET"));
+      pseudoItems.add(pseudoError);
+      return pseudoItems;
+    });
+  }
 
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final double spacing = 12;
     return RefreshIndicator(
       child: FutureBuilder<List<List<QuickItemData>>>(
@@ -43,7 +67,7 @@ class _OverviewViewState extends State<OverviewView> {
           builder: (BuildContext context,
               AsyncSnapshot<List<List<QuickItemData>>> snapshot) {
             List<Widget> children;
-            if (snapshot.hasData) {
+            if (snapshot.hasData && !userInvokedLoading) {
               if (snapshot.data.length > 1) {
                 children = <Widget>[
                   Column(children: [
@@ -107,10 +131,25 @@ class _OverviewViewState extends State<OverviewView> {
                   const Padding(
                     padding: EdgeInsets.only(top: 16),
                     child: Text('Something went wrong.'),
-                  )
+                  ),
+                  RaisedButton(
+                    onPressed: () {
+                      setState(() {
+                        SomDataService.setCacheNull();
+                        userInvokedLoading = true;
+                      });
+                    },
+                    padding: const EdgeInsets.all(0.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(10.0),
+                      child: const Text('Retry',
+                          style: TextStyle(letterSpacing: 1.0, height: 1.0)),
+                    ),
+                  ),
                 ];
               }
             } else {
+              userInvokedLoading = false;
               children = <Widget>[
                 SizedBox(
                   child: CircularProgressIndicator(),
