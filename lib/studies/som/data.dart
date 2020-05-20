@@ -144,7 +144,8 @@ Future<Map<String, dynamic>> tryAuthenticate(
       final leerlingCall = await dio.get(
           userItem["persoon"]["links"][0]["href"] + '?additional=lestijden',
           options: buildCacheOptions(Duration(days: 7)));
-      var lesTijdenTemp = leerlingCall.data["additionalObjects"]["lestijden"]["lesuren"];
+      var lesTijdenTemp =
+          leerlingCall.data["additionalObjects"]["lestijden"]["lesuren"];
       lesTijdenTemp.forEach((k) => lesTijden.add(LesTijd(
           begintijd: k["begintijd"].toString(),
           eindtijd: k["eindtijd"].toString(),
@@ -268,29 +269,35 @@ class SomDataService {
             startDate +
             "&einddatum=" +
             endDate;
-    var roosterQuickItems = new List<QuickItemData>();
-    try {
-      final response = await dio.get(
-          authData['somtoday_api_url'] +
-              '/rest/v1/afspraken?' +
-              additionalObjects,
-          options: buildCacheOptions(Duration(seconds: 120)));
-      if (response.statusCode == 200 || response.statusCode == 206) {
-        var data = response.data["items"];
-        data.forEach((k) => roosterQuickItems.add(QuickItemData(
-            name: k["additionalObjects"]["vak"]["naam"],
-            subtitle: k["additionalObjects"]["docentAfkortingen"] +
-                " - " +
-                k["locatie"],
-            caption: lesTijden.firstWhere((element) => element.nummer == k["beginLesuur"].toString()).begintijd.replaceAll(":00", ""))));
+    if (cachedRoster == null) {
+      try {
+        var roosterQuickItems = new List<QuickItemData>();
+        final response = await dio.get(authData['somtoday_api_url'] +
+            '/rest/v1/afspraken?' +
+            additionalObjects);
+        if (response.statusCode == 200 || response.statusCode == 206) {
+          var data = response.data["items"];
+          data.forEach((k) => roosterQuickItems.add(QuickItemData(
+              name: k["additionalObjects"]["vak"]["naam"],
+              subtitle: k["additionalObjects"]["docentAfkortingen"] +
+                  " - " +
+                  k["locatie"],
+              caption: lesTijden
+                  .firstWhere((element) =>
+                      element.nummer == k["beginLesuur"].toString())
+                  .begintijd
+                  .replaceAll(":00", ""))));
+          cachedRoster = roosterQuickItems;
+        }
+      } on DioError catch (e) {
+        print("error " + e.message);
       }
-    } on DioError catch (e) {
-      print("error " + e.message);
     }
-    roosterQuickItems.sort((a, b) {
-      return int.parse(a.caption.split(":")[0]).compareTo(int.parse(b.caption.split(":")[0]));
+    cachedRoster.sort((a, b) {
+      return int.parse(a.caption.split(":")[0])
+          .compareTo(int.parse(b.caption.split(":")[0]));
     });
-    itemsToReturn.add(roosterQuickItems);
+    itemsToReturn.add(cachedRoster);
     var quickGrades = await getQuickGradeItem();
     itemsToReturn.add(quickGrades);
     return itemsToReturn;
@@ -302,9 +309,11 @@ class SomDataService {
 
   static void setCacheNull() {
     cachedGrades = null;
+    cachedRoster = null;
   }
 
   static List<QuickItemData> cachedGrades;
+  static List<QuickItemData> cachedRoster;
   static Future<List<QuickItemData>> getQuickGradeItem() async {
     if (cachedGrades == null) {
       Dio dio = new Dio();
@@ -327,8 +336,10 @@ class SomDataService {
           if (response.statusCode == 200 || response.statusCode == 206) {
             var data = response.data["items"];
             print(data.length);
-            var _f = List.from(data)
-                .where((element) => element["type"] == "Toetskolom");
+            var _f = List.from(data).where((element) =>
+                element["type"] == "Toetskolom" &&
+                double.parse(element["resultaat"] ?? "1.0") > 1);
+
             _f.forEach((k) => gradesQuickItems.add(QuickItemData(
                 name: k["vak"]["naam"],
                 date: DateTime.parse(DateFormat("yyyy-MM-dd")

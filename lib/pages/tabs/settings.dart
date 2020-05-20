@@ -4,7 +4,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:better_som_today/studies/som/app.dart';
+import 'package:better_som_today/app.dart';
 import 'package:better_som_today/studies/som/colors.dart';
 import 'package:better_som_today/studies/som/data.dart';
 

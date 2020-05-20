@@ -11,7 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:better_som_today/constants.dart';
 import 'package:better_som_today/data/bettersom_options.dart';
-import 'package:better_som_today/studies/som/app.dart';
+import 'package:better_som_today/app.dart';
 
 class Backdrop extends StatefulWidget {
   const Backdrop({

@@ -1,7 +1,8 @@
+import 'package:better_som_today/studies/som/data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:better_som_today/main.dart';
-import 'package:better_som_today/studies/som/app.dart';
+import 'package:better_som_today/app.dart';
 
 typedef PathWidgetBuilder = Widget Function(BuildContext, String);
 

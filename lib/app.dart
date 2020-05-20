@@ -9,11 +9,9 @@ import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/layout/letter_spacing.dart';
 import 'package:better_som_today/studies/som/colors.dart';
 import 'package:better_som_today/studies/som/data.dart';
-import 'package:better_som_today/studies/som/home.dart';
-import 'package:better_som_today/studies/som/login.dart';
+import 'package:better_som_today/pages/home.dart';
+import 'package:better_som_today/pages/login.dart';
 
-/// The home route is the main page with tabs for sub pages.
-/// The login route is the initial route.
 class SomApp extends StatelessWidget {
   const SomApp();
 
@@ -22,6 +20,7 @@ class SomApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return MaterialApp(
       title: 'Som',
       debugShowCheckedModeBanner: false,

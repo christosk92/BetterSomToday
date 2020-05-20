@@ -43,7 +43,6 @@ class _OverviewViewState extends State<OverviewView> {
                     final boxWidth = hasMultipleColumns
                         ? constraints.maxWidth / 2 - spacing / 2
                         : double.infinity;
-                    final theme = Theme.of(context);
                     return Wrap(
                       runSpacing: spacing,
                       children: [
@@ -61,8 +60,8 @@ class _OverviewViewState extends State<OverviewView> {
                         if (snapshot.data[0].length == 0)
                           Container(
                               width: boxWidth,
-                              child: _emptyView(
-                                  title: "VOLGENDE LESSEN",
+                              child: EmptyView(
+                                  Title: "VOLGENDE LESSEN",
                                   subtitle: "Geen lessen",
                                   order: 2)),
                         if (hasMultipleColumns) SizedBox(width: spacing),
@@ -123,7 +122,7 @@ class _OverviewViewState extends State<OverviewView> {
   }
 }
 
-class _emptyView extends StatelessWidget {
+class EmptyView extends StatelessWidget {
   const _emptyView({
     this.title,
     this.subtitle,

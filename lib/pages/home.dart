@@ -5,9 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/layout/text_scale.dart';
-import 'package:better_som_today/studies/som/tabs/accounts.dart';
-import 'package:better_som_today/studies/som/tabs/overview.dart';
-import 'package:better_som_today/studies/som/tabs/settings.dart';
+import 'package:better_som_today/pages/tabs/accounts.dart';
+import 'package:better_som_today/pages/tabs/overview.dart';
+import 'package:better_som_today/pages/tabs/settings.dart';
 
 const int tabCount = 4;
 const int turnsToRotateRight = 1;
