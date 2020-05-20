@@ -4,10 +4,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:better_som_today/data/bettersom_options.dart';
-import 'package:better_som_today/layout/text_scale.dart';
 import 'package:better_som_today/pages/tabs/accounts.dart';
 import 'package:better_som_today/pages/tabs/overview.dart';
 import 'package:better_som_today/pages/tabs/settings.dart';
+import 'dart:math';
 
 const int tabCount = 4;
 const int turnsToRotateRight = 1;
@@ -23,6 +23,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
+  int _currentIndex = 0;
+
   //Future<FetchedUserItem> futureRoosterItems;
   @override
   void initState() {
@@ -45,90 +47,21 @@ class _HomePageState extends State<HomePage>
     final theme = Theme.of(context);
     final isDesktop = false;
     Widget tabBarView;
-    if (isDesktop) {
-      final isTextDirectionRtl =
-          SomOptions.of(context).resolvedTextDirection() ==
-              TextDirection.rtl;
-      final verticalRotation =
-          isTextDirectionRtl ? turnsToRotateLeft : turnsToRotateRight;
-      final revertVerticalRotation =
-          isTextDirectionRtl ? turnsToRotateRight : turnsToRotateLeft;
-      tabBarView = Row(
-        children: [
-          Container(
-            width: 150 + 50 * (cappedTextScale(context) - 1),
-            alignment: Alignment.topCenter,
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                ExcludeSemantics(
-                  child: SizedBox(
-                    height: 80,
-                    child: Image.asset(
-                      'logo.png',
-                      package: 'rally_assets',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Rotate the tab bar, so the animation is vertical for desktops.
-                RotatedBox(
-                  quarterTurns: verticalRotation,
-                  child: _RallyTabBar(
-                    tabs: _buildTabs(
-                            context: context, theme: theme, isVertical: true)
-                        .map(
-                      (widget) {
-                        // Revert the rotation on the tabs.
-                        return RotatedBox(
-                          quarterTurns: revertVerticalRotation,
-                          child: widget,
-                        );
-                      },
-                    ).toList(),
-                    tabController: _tabController,
-                  ),
-                ),
-              ],
-            ),
+
+    tabBarView = Column(
+      children: [
+        _RallyTabBar(
+          tabs: _buildTabs(context: context, theme: theme),
+          tabController: _tabController,
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: _buildTabViews(),
           ),
-          Expanded(
-            // Rotate the tab views so we can swipe up and down.
-            child: RotatedBox(
-              quarterTurns: verticalRotation,
-              child: TabBarView(
-                controller: _tabController,
-                children: _buildTabViews().map(
-                  (widget) {
-                    // Revert the rotation on the tab views.
-                    return RotatedBox(
-                      quarterTurns: revertVerticalRotation,
-                      child: widget,
-                    );
-                  },
-                ).toList(),
-              ),
-            ),
-          ),
-        ],
-      );
-    } else {
-      tabBarView = Column(
-        children: [
-          _RallyTabBar(
-            tabs: _buildTabs(context: context, theme: theme),
-            tabController: _tabController,
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: _buildTabViews(),
-            ),
-          ),
-        ],
-      );
-    }
+        ),
+      ],
+    );
     return ApplyTextOptions(
       child: Scaffold(
         body: SafeArea(
@@ -173,7 +106,7 @@ class _HomePageState extends State<HomePage>
         tabController: _tabController,
         isVertical: isVertical,
       ),
-       _RallyTab(
+      _RallyTab(
         theme: theme,
         iconData: Icons.edit,
         title: 'HUISWERK',
@@ -234,7 +167,7 @@ class _RallyTab extends StatefulWidget {
     IconData iconData,
     String title,
     int tabIndex,
-    TabController tabController,
+    this.tabController,
     this.isVertical,
   })  : titleText = Text(title, style: theme.textTheme.button),
         isExpanded = tabController.index == tabIndex,
@@ -244,7 +177,7 @@ class _RallyTab extends StatefulWidget {
   final Icon icon;
   final bool isExpanded;
   final bool isVertical;
-
+  final TabController tabController;
   @override
   _RallyTabState createState() => _RallyTabState();
 }
@@ -252,9 +185,9 @@ class _RallyTab extends StatefulWidget {
 class _RallyTabState extends State<_RallyTab>
     with SingleTickerProviderStateMixin {
   Animation<double> _titleSizeAnimation;
-  Animation<double> _titleFadeAnimation;
   Animation<double> _iconFadeAnimation;
   AnimationController _controller;
+  int _fromIndex = 0;
 
   @override
   void initState() {
@@ -263,12 +196,16 @@ class _RallyTabState extends State<_RallyTab>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _titleSizeAnimation = _controller.view;
-    _titleFadeAnimation = _controller.drive(CurveTween(curve: Curves.easeInQuint));
+    _titleSizeAnimation =
+        _controller.drive(CurveTween(curve: Curves.easeInSine));
     _iconFadeAnimation = _controller.drive(Tween<double>(begin: 0.6, end: 1));
     if (widget.isExpanded) {
       _controller.value = 1;
     }
+
+    widget.tabController.animation..addListener(() {
+      _controller.reverse();
+    });
   }
 
   @override
@@ -283,29 +220,6 @@ class _RallyTabState extends State<_RallyTab>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isVertical) {
-      return Column(
-        children: [
-          const SizedBox(height: 18),
-          FadeTransition(
-            child: widget.icon,
-            opacity: _iconFadeAnimation,
-          ),
-          const SizedBox(height: 12),
-          FadeTransition(
-            child: SizeTransition(
-              child: Center(child: ExcludeSemantics(child: widget.titleText)),
-              axis: Axis.vertical,
-              axisAlignment: -1,
-              sizeFactor: _titleSizeAnimation,
-            ),
-            opacity: _titleFadeAnimation,
-          ),
-          const SizedBox(height: 18),
-        ],
-      );
-    }
-
     // Calculate the width of each unexpanded tab by counting the number of
     // units and dividing it into the screen width. Each unexpanded tab is 1
     // unit, and there is always 1 expanded tab which is 1 unit + any extra
@@ -314,34 +228,35 @@ class _RallyTabState extends State<_RallyTab>
     const expandedTitleWidthMultiplier = 2;
     final unitWidth = width / (tabCount + expandedTitleWidthMultiplier);
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 56),
-      child: Row(
-        children: [
-          FadeTransition(
-            child: SizedBox(
-              width: unitWidth,
-              child: widget.icon,
-            ),
-            opacity: _iconFadeAnimation,
-          ),
-          FadeTransition(
-            child: SizeTransition(
-              child: SizedBox(
-                width: unitWidth * expandedTitleWidthMultiplier,
-                child: Center(
-                  child: ExcludeSemantics(child: widget.titleText),
+    return AnimatedBuilder(
+        animation: widget.tabController.animation,
+        builder: (BuildContext context, snapshot) {
+          return ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Row(
+              children: [
+                FadeTransition(
+                  child: SizedBox(
+                    width: unitWidth,
+                    child: widget.icon,
+                  ),
+                  opacity: _iconFadeAnimation,
                 ),
-              ),
-              axis: Axis.horizontal,
-              axisAlignment: -1,
-              sizeFactor: _titleSizeAnimation,
+                SizeTransition(
+                  child: SizedBox(
+                    width: unitWidth * expandedTitleWidthMultiplier,
+                    child: Center(
+                      child: ExcludeSemantics(child: widget.titleText),
+                    ),
+                  ),
+                  axis: Axis.horizontal,
+                  axisAlignment: -1,
+                  sizeFactor: _titleSizeAnimation,
+                ),
+              ],
             ),
-            opacity: _titleFadeAnimation,
-          ),
-        ],
-      ),
-    );
+          );
+        });
   }
 
   @override

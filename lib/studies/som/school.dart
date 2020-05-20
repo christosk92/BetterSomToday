@@ -5,7 +5,6 @@ import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/layout/text_scale.dart';
 import 'package:better_som_today/studies/som/colors.dart';
 import 'package:better_som_today/studies/som/data.dart';
-import 'package:better_som_today/studies/som/formatters.dart';
 import 'package:better_som_today/studies/som/charts/vertical_fraction_bar.dart';
 class FullRoosterView extends StatelessWidget {
   const FullRoosterView({
@@ -221,121 +220,6 @@ class FullRoosterPage extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _DetailedEventCard extends StatelessWidget {
-  const _DetailedEventCard({
-    @required this.title,
-    @required this.date,
-    @required this.amount,
-  });
-
-  final String title;
-  final DateTime date;
-  final double amount;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDesktop = false;
-    return FlatButton(
-      onPressed: () {},
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            width: double.infinity,
-            child: isDesktop
-                ? Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: _EventTitle(title: title),
-                      ),
-                      _EventDate(date: date),
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                          alignment: AlignmentDirectional.centerEnd,
-                          child: _EventAmount(amount: amount),
-                        ),
-                      ),
-                    ],
-                  )
-                : Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _EventTitle(title: title),
-                          _EventDate(date: date),
-                        ],
-                      ),
-                      _EventAmount(amount: amount),
-                    ],
-                  ),
-          ),
-          SizedBox(
-            height: 1,
-            child: Container(
-              color: RallyColors.dividerColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EventAmount extends StatelessWidget {
-  const _EventAmount({Key key, @required this.amount}) : super(key: key);
-
-  final double amount;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Text(
-      usdWithSignFormat(context).format(amount),
-      style: textTheme.bodyText1.copyWith(
-        fontSize: 20,
-        color: RallyColors.gray,
-      ),
-    );
-  }
-}
-
-class _EventDate extends StatelessWidget {
-  const _EventDate({Key key, @required this.date}) : super(key: key);
-
-  final DateTime date;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Text(
-      shortDateFormat(context).format(date),
-      semanticsLabel: longDateFormat(context).format(date),
-      style: textTheme.bodyText2.copyWith(color: RallyColors.gray60),
-    );
-  }
-}
-
-class _EventTitle extends StatelessWidget {
-  const _EventTitle({Key key, @required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Text(
-      title,
-      style: textTheme.bodyText2.copyWith(fontSize: 16),
     );
   }
 }

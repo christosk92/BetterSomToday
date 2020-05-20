@@ -1,4 +1,3 @@
-import 'package:better_som_today/studies/som/data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:better_som_today/main.dart';

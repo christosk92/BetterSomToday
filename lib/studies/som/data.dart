@@ -9,9 +9,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'package:json_annotation/json_annotation.dart';
-import 'package:intl/intl.dart';
 
 dynamic authData;
 dynamic userItem;
@@ -255,9 +252,9 @@ class SomDataService {
     dio.options.headers["Authorization"] = "Bearer " + authToken;
     dio.options.headers["accept"] = "application/json";
     DateTime today = DateTime.now();
-    var _firstDayOfTheweek = today
-        .subtract(new Duration(days: today.weekday))
-        .add(new Duration(days: 1));
+   // var _firstDayOfTheweek = today
+     //   .subtract(new Duration(days: today.weekday))
+       // .add(new Duration(days: 1));
     //var startDate = DateFormat('yyyy-MM-dd').format(_firstDayOfTheweek);
     //var endDate = DateFormat('yyyy-MM-dd')
     //.format(_firstDayOfTheweek.add(new Duration(days: 6)));

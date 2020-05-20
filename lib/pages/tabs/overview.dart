@@ -61,7 +61,7 @@ class _OverviewViewState extends State<OverviewView> {
                           Container(
                               width: boxWidth,
                               child: EmptyView(
-                                  Title: "VOLGENDE LESSEN",
+                                  title: "VOLGENDE LESSEN",
                                   subtitle: "Geen lessen",
                                   order: 2)),
                         if (hasMultipleColumns) SizedBox(width: spacing),
@@ -80,7 +80,7 @@ class _OverviewViewState extends State<OverviewView> {
                         if (snapshot.data[1].length == 0)
                           Container(
                               width: boxWidth,
-                              child: _emptyView(
+                              child: EmptyView(
                                   title: "LAATSTE CIJFERS",
                                   subtitle: "Geen cijfers",
                                   order: 2))
@@ -123,7 +123,7 @@ class _OverviewViewState extends State<OverviewView> {
 }
 
 class EmptyView extends StatelessWidget {
-  const _emptyView({
+  const EmptyView({
     this.title,
     this.subtitle,
     this.order,
