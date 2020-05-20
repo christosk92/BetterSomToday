@@ -4,6 +4,7 @@
 
 import 'dart:math' as math;
 
+import 'package:better_som_today/app.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -22,7 +23,17 @@ class _OverviewViewState extends State<OverviewView> {
   @override
   Widget build(BuildContext context) {
     Future<List<List<QuickItemData>>> quickItemsAsync() async {
-      return await SomDataService.getQuickItemsAsync(context);
+      try {
+        return await SomDataService.getQuickItemsAsync(context);
+      } catch (e) {
+        await keyx.currentState
+            .showDiag("There was a problem", e.toString(), "OK");
+        var pseudoItems = new List<List<QuickItemData>>();
+        var pseudoError = new List<QuickItemData>();
+        pseudoError.add(QuickItemData(name: "ERROR_INTERNET"));
+        pseudoItems.add(pseudoError);
+        return pseudoItems;
+      }
     }
 
     final double spacing = 12;
@@ -33,62 +44,72 @@ class _OverviewViewState extends State<OverviewView> {
               AsyncSnapshot<List<List<QuickItemData>>> snapshot) {
             List<Widget> children;
             if (snapshot.hasData) {
-              children = <Widget>[
-                Column(children: [
-                  const SizedBox(height: 12),
-                  LayoutBuilder(builder: (context, constraints) {
-                    // Only display multiple columns when the constraints allow it and we
-                    // have a regular text scale factor.
-                    final hasMultipleColumns = false;
-                    final boxWidth = hasMultipleColumns
-                        ? constraints.maxWidth / 2 - spacing / 2
-                        : double.infinity;
-                    return Wrap(
-                      runSpacing: spacing,
-                      children: [
-                        if (snapshot.data[0].length > 0)
-                          Container(
-                            width: boxWidth,
-                            child: _QuickRoosterView(
-                              title: 'VOLGENDE LESSEN',
-                              subtitle: currentDate(),
-                              quickItems: buildQuickRoosterListView(
-                                  snapshot.data[0], context),
-                              order: 1,
-                            ),
-                          ),
-                        if (snapshot.data[0].length == 0)
-                          Container(
+              if (snapshot.data.length > 1) {
+                children = <Widget>[
+                  Column(children: [
+                    const SizedBox(height: 12),
+                    LayoutBuilder(builder: (context, constraints) {
+                      // Only display multiple columns when the constraints allow it and we
+                      // have a regular text scale factor.
+                      final hasMultipleColumns = false;
+                      final boxWidth = hasMultipleColumns
+                          ? constraints.maxWidth / 2 - spacing / 2
+                          : double.infinity;
+                      return Wrap(
+                        runSpacing: spacing,
+                        children: [
+                          if (snapshot.data[0].length > 0)
+                            Container(
                               width: boxWidth,
-                              child: EmptyView(
-                                  title: "VOLGENDE LESSEN",
-                                  subtitle: "Geen lessen",
-                                  order: 2)),
-                        if (hasMultipleColumns) SizedBox(width: spacing),
-                        if (snapshot.data[1].length > 0)
-                          Container(
-                            width: boxWidth,
-                            child: _QuickRoosterView(
-                              title: 'LAATSTE CIJFERS',
-                              subtitle:
-                                  averageLatestGrades(snapshot.data[1], 3),
-                              quickItems: buildQuickGradeListView(
-                                  snapshot.data[1], context),
-                              order: 2,
+                              child: _QuickRoosterView(
+                                title: 'VOLGENDE LESSEN',
+                                subtitle: currentDate(),
+                                quickItems: buildQuickRoosterListView(
+                                    snapshot.data[0], context),
+                                order: 1,
+                              ),
                             ),
-                          ),
-                        if (snapshot.data[1].length == 0)
-                          Container(
+                          if (snapshot.data[0].length == 0)
+                            Container(
+                                width: boxWidth,
+                                child: EmptyView(
+                                    title: "VOLGENDE LESSEN",
+                                    subtitle: "Geen lessen",
+                                    order: 2)),
+                          if (hasMultipleColumns) SizedBox(width: spacing),
+                          if (snapshot.data[1].length > 0)
+                            Container(
                               width: boxWidth,
-                              child: EmptyView(
-                                  title: "LAATSTE CIJFERS",
-                                  subtitle: "Geen cijfers",
-                                  order: 2))
-                      ],
-                    );
-                  })
-                ])
-              ];
+                              child: _QuickRoosterView(
+                                title: 'LAATSTE CIJFERS',
+                                subtitle:
+                                    averageLatestGrades(snapshot.data[1], 3),
+                                quickItems: buildQuickGradeListView(
+                                    snapshot.data[1], context),
+                                order: 2,
+                              ),
+                            ),
+                          if (snapshot.data[1].length == 0)
+                            Container(
+                                width: boxWidth,
+                                child: EmptyView(
+                                    title: "LAATSTE CIJFERS",
+                                    subtitle: "Geen cijfers",
+                                    order: 2))
+                        ],
+                      );
+                    })
+                  ])
+                ];
+              } else {
+                children = <Widget>[
+                  Icon(Icons.error_outline, size: 45, color: Color(0xFFFFFFFF)),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Text('Something went wrong.'),
+                  )
+                ];
+              }
             } else {
               children = <Widget>[
                 SizedBox(

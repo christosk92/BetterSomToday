@@ -7,23 +7,21 @@ import 'package:better_som_today/data/bettersom_options.dart';
 import 'package:better_som_today/pages/tabs/accounts.dart';
 import 'package:better_som_today/pages/tabs/overview.dart';
 import 'package:better_som_today/pages/tabs/settings.dart';
-import 'dart:math';
 
 const int tabCount = 4;
 const int turnsToRotateRight = 1;
 const int turnsToRotateLeft = 3;
-
 class HomePage extends StatefulWidget {
-  const HomePage();
+  HomePage({ Key key }) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
+class HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   TabController _tabController;
-  int _currentIndex = 0;
+
 
   //Future<FetchedUserItem> futureRoosterItems;
   @override
@@ -42,6 +40,31 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  Future<void> showDiag(
+      String title, String message, String buttonText) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[Text(message)],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text(buttonText),
+              onPressed: () {
+                    Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -187,7 +210,6 @@ class _RallyTabState extends State<_RallyTab>
   Animation<double> _titleSizeAnimation;
   Animation<double> _iconFadeAnimation;
   AnimationController _controller;
-  int _fromIndex = 0;
 
   @override
   void initState() {

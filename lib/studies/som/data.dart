@@ -198,7 +198,7 @@ double sumOf<T>(List<T> list, double Function(T elt) getValue) {
 ///
 class QuickItemData {
   const QuickItemData(
-      {this.name, this.caption, this.subtitle, this.date = null});
+      {this.name, this.caption, this.subtitle, this.date});
 
   final String name;
   final DateTime date;
@@ -274,20 +274,23 @@ class SomDataService {
             additionalObjects);
         if (response.statusCode == 200 || response.statusCode == 206) {
           var data = response.data["items"];
-          data.forEach((k) => roosterQuickItems.add(QuickItemData(
-              name: k["additionalObjects"]["vak"]["naam"],
-              subtitle: k["additionalObjects"]["docentAfkortingen"] +
+          data.forEach((p) => roosterQuickItems.add(QuickItemData(
+              name: p["additionalObjects"]["vak"]["naam"],
+              subtitle: p["additionalObjects"]["docentAfkortingen"] +
                   " - " +
-                  k["locatie"],
+                  p["locatie"].toString(),
               caption: lesTijden
                   .firstWhere((element) =>
-                      element.nummer == k["beginLesuur"].toString())
+                      element.nummer == p["beginLesuur"].toString())
                   .begintijd
                   .replaceAll(":00", ""))));
           cachedRoster = roosterQuickItems;
         }
       } on DioError catch (e) {
-        print("error " + e.message);
+        print("error " + e.toString());
+      }
+      catch(e){
+        print(e.toString());
       }
     }
     cachedRoster.sort((a, b) {

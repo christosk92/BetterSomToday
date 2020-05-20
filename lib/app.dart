@@ -12,15 +12,14 @@ import 'package:better_som_today/studies/som/data.dart';
 import 'package:better_som_today/pages/home.dart';
 import 'package:better_som_today/pages/login.dart';
 
+final keyx = GlobalKey<HomePageState>(debugLabel: "__RIKEY1__");
 class SomApp extends StatelessWidget {
   const SomApp();
-
   static const String loginRoute = '/Som/login';
   static const String homeRoute = '/Som';
 
   @override
   Widget build(BuildContext context) {
-    
     return MaterialApp(
       title: 'Som',
       debugShowCheckedModeBanner: false,
@@ -29,7 +28,7 @@ class SomApp extends StatelessWidget {
       ),
       initialRoute: loginRoute,
       routes: <String, WidgetBuilder>{
-        homeRoute: (context) => const HomePage(),
+        homeRoute: (context) => HomePage(key: keyx),
         loginRoute: (context) => LoginPage(storage: UserStorage()),
       },
     );
