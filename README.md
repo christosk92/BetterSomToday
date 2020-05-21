@@ -5,5 +5,5 @@ Hopelijk wordt dit een betere implementatie van SomToday voor Android en misschi
 
 ## Progress
 
-![Image description](https://i.imgur.com/OY0qvLf.jpgg)
+![Image description](https://i.imgur.com/DligEpd.png)
 

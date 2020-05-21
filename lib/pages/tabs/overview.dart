@@ -60,8 +60,8 @@ class _OverviewViewState extends State<OverviewView>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final double spacing = 12;
-    final int maxItemsOnGrades = 3;
+    final double spacing = 0;
+    final int maxItemsOnGrades = 7;
     final int maxItemsOnRooster = 3;
     return RefreshIndicator(
       child: FutureBuilder<List<List<QuickItemData>>>(
@@ -73,7 +73,6 @@ class _OverviewViewState extends State<OverviewView>
               if (snapshot.data.length > 1) {
                 children = <Widget>[
                   Column(children: [
-                    const SizedBox(height: 12),
                     LayoutBuilder(builder: (context, constraints) {
                       // Only display multiple columns when the constraints allow it and we
                       // have a regular text scale factor.
@@ -103,7 +102,6 @@ class _OverviewViewState extends State<OverviewView>
                                     title: "VOLGENDE LESSEN",
                                     subtitle: "Geen lessen",
                                     order: 2)),
-                          if (hasMultipleColumns) SizedBox(width: spacing),
                           if (snapshot.data[1].length > 0)
                             Container(
                               width: boxWidth,
@@ -217,9 +215,9 @@ class EmptyView extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(
-                      top: 16,
-                      left: 16,
-                      right: 16,
+                      top: 10,
+                      left: 15,
+                      right: 15,
                     ),
                     child: Text(title),
                   ),
@@ -228,7 +226,7 @@ class EmptyView extends StatelessWidget {
                     child: Text(
                       subtitle,
                       style: theme.textTheme.bodyText1.copyWith(
-                        fontSize: 44 / reducedTextScale(context),
+                        fontSize: 43 / reducedTextScale(context),
                         fontWeight: FontWeight.w600,
                       ),
                     ),

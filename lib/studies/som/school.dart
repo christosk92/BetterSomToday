@@ -207,14 +207,11 @@ class FullRoosterPage extends StatelessWidget {
           children: [
 
             Expanded(
-              child: Padding(
-                padding: isDesktop ? const EdgeInsets.all(40) : EdgeInsets.zero,
                 child: ListView(
                   shrinkWrap: true,
                   children: [
                 
                   ],
-                ),
               ),
             ),
           ],
