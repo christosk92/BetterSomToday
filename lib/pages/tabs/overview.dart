@@ -61,6 +61,8 @@ class _OverviewViewState extends State<OverviewView>
   Widget build(BuildContext context) {
     super.build(context);
     final double spacing = 12;
+    final int maxItemsOnGrades = 3;
+    final int maxItemsOnRooster = 3;
     return RefreshIndicator(
       child: FutureBuilder<List<List<QuickItemData>>>(
           future: quickItemsAsync(),
@@ -91,6 +93,7 @@ class _OverviewViewState extends State<OverviewView>
                                 quickItems: buildQuickRoosterListView(
                                     snapshot.data[0], context),
                                 order: 1,
+                                maxItems: maxItemsOnRooster,
                               ),
                             ),
                           if (snapshot.data[0].length == 0)
@@ -106,11 +109,12 @@ class _OverviewViewState extends State<OverviewView>
                               width: boxWidth,
                               child: _QuickRoosterView(
                                 title: 'LAATSTE CIJFERS',
-                                subtitle:
-                                    averageLatestGrades(snapshot.data[1], 3),
+                                subtitle: averageLatestGrades(
+                                    snapshot.data[1], maxItemsOnGrades),
                                 quickItems: buildQuickGradeListView(
                                     snapshot.data[1], context),
                                 order: 2,
+                                maxItems: maxItemsOnGrades,
                               ),
                             ),
                           if (snapshot.data[1].length == 0)
@@ -151,25 +155,29 @@ class _OverviewViewState extends State<OverviewView>
             } else {
               userInvokedLoading = false;
               children = <Widget>[
-                SizedBox(
-                  child: CircularProgressIndicator(),
-                  width: 60,
-                  height: 60,
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 16),
-                  child: Text('Awaiting result...'),
-                )
+                Padding(
+                  padding: EdgeInsets.all(16.0),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                      SizedBox(
+                        child: CircularProgressIndicator(),
+                        width: 60,
+                        height: 60,
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 16),
+                        child: Text('Awaiting result...'),
+                      )
+                    ]))
               ];
             }
-            return Container(
-                alignment: Alignment.center,
-                child: SingleChildScrollView(
-                    // new line
-                    child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: children,
-                )));
+            return ListView(
+              // new line
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: children,
+            );
           }),
       onRefresh: _getData,
     );
@@ -236,14 +244,14 @@ class EmptyView extends StatelessWidget {
 }
 
 class _QuickRoosterView extends StatelessWidget {
-  const _QuickRoosterView({
-    this.title,
-    this.subtitle,
-    this.quickItems,
-    this.buttonSemanticsLabel,
-    this.order,
-  });
-
+  const _QuickRoosterView(
+      {this.title,
+      this.subtitle,
+      this.quickItems,
+      this.buttonSemanticsLabel,
+      this.order,
+      this.maxItems});
+  final int maxItems;
   final String title;
   final String buttonSemanticsLabel;
   final String subtitle;
@@ -285,7 +293,7 @@ class _QuickRoosterView extends StatelessWidget {
                 ],
               ),
             ),
-            ...quickItems.sublist(0, math.min(quickItems.length, 3)),
+            ...quickItems.sublist(0, math.min(quickItems.length, maxItems)),
             FlatButton(
               child: Text(
                 'ZIE ALLES',
